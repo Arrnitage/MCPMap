@@ -134,11 +134,15 @@ name = "mcp-enum"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "colorama" },
     { name = "mcp" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "mcp", specifier = ">=1.6.0" }]
+requires-dist = [
+    { name = "colorama", specifier = ">=0.4.6" },
+    { name = "mcp", specifier = ">=1.6.0" },
+]
 
 [[package]]
 name = "pydantic"

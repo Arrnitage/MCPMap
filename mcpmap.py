@@ -3,8 +3,23 @@ from mcp.client.sse import sse_client
 from mcp import ClientSession
 import argparse
 import asyncio
+from colorama import Fore
 import sys
 
+def print_ok(msg: str):
+    print(f"{Fore.GREEN}[+]{Fore.RESET} {msg}")
+
+def print_info(msg: str):
+    print(f"{Fore.BLUE}[*]{Fore.RESET} {msg}")
+
+def print_warning(msg: str):
+    print(f"{Fore.YELLOW}[!]{Fore.RESET} {msg}")
+
+def print_failure(msg: str):
+    print(f"{Fore.RED}[-]{Fore.RESET} {msg}")
+
+def print_test(msg: str):
+    print(f"{Fore.CYAN}[TEST]:{Fore.RESET} {msg}")
 class MCPClient:
     def __init__(self):
         self.session: Optional[ClientSession] = None
@@ -23,42 +38,48 @@ class MCPClient:
         await self.session.initialize()
 
         # List available tools to verify connection
-        print("Initialized SSE client...")
+        print_info("Initialized SSE client...")
 
     async def enum_mcp_server(self):
-        print("Listing tools")
+        print_info("Listing tools")
         response = await self.session.list_tools()
         tools = getattr(response, "tools", [])
 
         for tool in tools:
-            print(f"Tool name: {getattr(tool, 'name', '')}")
-            print(f"Description: {getattr(tool, 'description', '')}")
-            print(f"InputSchema: {getattr(tool, 'inputSchema', '')}")
-            print(f"Model config: {getattr(tool, 'model_config', '')}")
+            print_ok(f"Tool name: {getattr(tool, 'name', '')}")
+            print_ok(f"Description: {getattr(tool, 'description', '')}")
+            print_ok(f"InputSchema: {getattr(tool, 'inputSchema', '')}")
+            print_ok(f"Model config: {getattr(tool, 'model_config', '')}")
 
-        print("Listing resources")
+        print_info("Listing resources")
         response = await self.session.list_resources()
         resources = getattr(response, 'resources', [])
 
-        for resource in resources:
-            print(f"Resource name: {getattr(resource, 'name', '')}")
-            print(f"MIME type: {getattr(resource, 'mimeType', '')}")
-            uri = getattr(resource, 'uri', '')
-            print(f"URI: {uri}")
-            response = await self.session.read_resource(uri)
-            contents = getattr(response, 'contents', [])
+        if len(resources) == 0:
+            print_warning("This MCP server doesn't have resources")
+        else:
+            for resource in resources:
+                print_ok(f"Resource name: {getattr(resource, 'name', '')}")
+                print_ok(f"MIME type: {getattr(resource, 'mimeType', '')}")
+                uri = getattr(resource, 'uri', '')
+                print_ok(f"URI: {uri}")
+                response = await self.session.read_resource(uri)
+                contents = getattr(response, 'contents', [])
 
-            for content in contents:
-                print(f"Content: {getattr(content, 'text', '')}")
+                for content in contents:
+                    print_ok(f"Content: {getattr(content, 'text', '')}")
 
 
-        print("Listing Prompts")
+        print_info("Listing Prompts")
         response = await self.session.list_prompts()
         prompts = getattr(response, "prompts", [])
-        
-        for prompt in prompts:
-            # TODO: List Prompts
-            pass
+
+        if len(prompts) == 0:
+            print_warning("This MCP server doesn't have prompts")
+        else:
+            for prompt in prompts:
+                # TODO: List Prompts
+                print_test(prompt)
 
     async def fuzz_tool(self, tool_name: str):
         print("Fuzzing tool")
@@ -83,9 +104,14 @@ async def main():
 
     args = parser.parse_args()
 
+    sse = args.sse
+    if not sse.rstrip("/").endswith("/sse"):
+        sse = sse.rstrip("/") + "/sse"
+
     client = MCPClient()
+
     try:
-        await client.connect_to_sse_server(server_url=args.sse)
+        await client.connect_to_sse_server(server_url=sse)
         if args.method == "enum":
             await client.enum_mcp_server()
 
