@@ -47,9 +47,9 @@ class MCPClient:
 
         for tool in tools:
             print_ok(f"Tool name: {getattr(tool, 'name', '')}")
-            print_ok(f"Description: {getattr(tool, 'description', '')}")
-            print_ok(f"InputSchema: {getattr(tool, 'inputSchema', '')}")
-            print_ok(f"Model config: {getattr(tool, 'model_config', '')}")
+            print(f"  * Description: {getattr(tool, 'description', '')}")
+            print(f"  * InputSchema: {getattr(tool, 'inputSchema', '')}")
+            print(f"  * Model config: {getattr(tool, 'model_config', '')}")
 
         print_info("Listing resources")
         response = await self.session.list_resources()
@@ -60,14 +60,14 @@ class MCPClient:
         else:
             for resource in resources:
                 print_ok(f"Resource name: {getattr(resource, 'name', '')}")
-                print_ok(f"MIME type: {getattr(resource, 'mimeType', '')}")
+                print(f"  * MIME type: {getattr(resource, 'mimeType', '')}")
                 uri = getattr(resource, 'uri', '')
-                print_ok(f"URI: {uri}")
+                print(f"  * URI: {uri}")
                 response = await self.session.read_resource(uri)
                 contents = getattr(response, 'contents', [])
 
                 for content in contents:
-                    print_ok(f"Content: {getattr(content, 'text', '')}")
+                    print(f"  * Content: {getattr(content, 'text', '')}")
 
 
         print_info("Listing Prompts")
